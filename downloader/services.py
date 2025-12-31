@@ -28,6 +28,11 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+# Cookie file path (optional - for YouTube authentication on servers)
+COOKIES_FILE = getattr(settings, 'YOUTUBE_COOKIES_FILE', None) or os.environ.get('YOUTUBE_COOKIES_FILE')
+if COOKIES_FILE and not os.path.exists(COOKIES_FILE):
+    COOKIES_FILE = None
+
 
 @dataclass
 class VideoInfo:
@@ -259,8 +264,17 @@ class VideoDownloader:
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
                 'Accept-Language': 'en-us,en;q=0.5',
+                'Accept-Encoding': 'gzip, deflate',
+                'DNT': '1',
+                'Connection': 'keep-alive',
             },
+            # Use android client to bypass some restrictions
+            'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
         }
+        
+        # Add cookies if available (for YouTube authentication)
+        if COOKIES_FILE:
+            options['cookiefile'] = COOKIES_FILE
         
         # Add FFmpeg path if available - REQUIRED for merging video+audio
         if FFMPEG_PATH:
@@ -310,10 +324,24 @@ class VideoDownloader:
             'no_warnings': True,
             'extract_flat': False,
             'noplaylist': True,
+            # Extended headers to appear more like a real browser
             'http_headers': {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.5',
+                'Accept-Encoding': 'gzip, deflate',
+                'DNT': '1',
+                'Connection': 'keep-alive',
+                'Upgrade-Insecure-Requests': '1',
             },
+            # Additional options to help bypass restrictions
+            'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
+            'socket_timeout': 30,
         }
+        
+        # Add cookies if available (helps with YouTube bot detection)
+        if COOKIES_FILE:
+            options['cookiefile'] = COOKIES_FILE
         
         try:
             with yt_dlp.YoutubeDL(options) as ydl:
@@ -359,6 +387,8 @@ class VideoDownloader:
                 raise VideoDownloaderError("Video is unavailable or private")
             elif 'age-restricted' in error_msg.lower():
                 raise VideoDownloaderError("Video is age-restricted and cannot be downloaded")
+            elif 'Sign in to confirm' in error_msg or 'bot' in error_msg.lower():
+                raise VideoDownloaderError("YouTube is blocking this request. This video cannot be downloaded from our server due to YouTube restrictions. Please try a different video or platform.")
             else:
                 raise VideoDownloaderError(f"Failed to extract video info: {error_msg}")
         except Exception as e:
@@ -707,8 +737,15 @@ class VideoDownloader:
             'noplaylist': True,
             'http_headers': {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.5',
             },
+            'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
         }
+        
+        # Add cookies if available
+        if COOKIES_FILE:
+            options['cookiefile'] = COOKIES_FILE
         
         try:
             with yt_dlp.YoutubeDL(options) as ydl:
@@ -814,8 +851,15 @@ class VideoDownloader:
             'noplaylist': True,
             'http_headers': {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.5',
             },
+            'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
         }
+        
+        # Add cookies if available
+        if COOKIES_FILE:
+            options['cookiefile'] = COOKIES_FILE
         
         try:
             with yt_dlp.YoutubeDL(options) as ydl:
