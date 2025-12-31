@@ -1,0 +1,26 @@
+# AnyDownloader - Requirements
+# Python 3.11+
+
+# Django Framework
+Django>=5.0
+
+# Video downloading library (supports 1000+ sites)
+yt-dlp>=2024.1.1
+
+# Static files serving
+whitenoise>=6.6.0
+
+# Production deployment
+gunicorn>=21.2.0
+
+# Database URL parsing (for Render PostgreSQL)
+dj-database-url>=2.1.0
+
+# PostgreSQL adapter (for Render)
+psycopg2-binary>=2.9.9
+
+# Environment variables management
+python-dotenv>=1.0.0
+
+# FFmpeg for video/audio processing (bundled)
+imageio-ffmpeg>=0.4.9

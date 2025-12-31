@@ -1,0 +1,27 @@
+# Render Blueprint Configuration
+# https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: anydownloader
+    runtime: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn anydownloader.wsgi:application"
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: anydownloader.settings.render
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: PYTHON_VERSION
+        value: "3.11.6"
+      - key: WEB_CONCURRENCY
+        value: "4"
+    autoDeploy: true
+
+# Optional: Add a PostgreSQL database
+# Uncomment if you want persistent database storage
+# databases:
+#   - name: anydownloader-db
+#     plan: free
+#     databaseName: anydownloader
+#     user: anydownloader
